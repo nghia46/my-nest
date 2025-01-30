@@ -11,10 +11,10 @@ async function bootstrap() {
   app.use('/public', express.static(join(__dirname, '..', 'public')));
 
   const options = new DocumentBuilder()
-    .setTitle('API')
-    .setDescription('API description')
+    .setTitle('My App API')
+    .setDescription('My App API description')
     .setVersion('1.0')
-    .addTag('API')
+    .addTag('My App')
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api/docs', app, document, {
