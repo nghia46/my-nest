@@ -11,23 +11,21 @@ import { UserService } from '../Services/user.service';
 import { User as UserModel, Post as PostModel } from '@prisma/client';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/Dtos/create-user.dto';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateUserCommand } from 'src/user/commands/create-user.command';
 
-@Controller()
+@Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly commandBus: CommandBus) {}
 
   @ApiOperation({ summary: 'Create new user' })
-  @Post('user')
+  @Post()
   @ApiResponse({ status: 201, description: 'The user has been created.' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async signupUser(
     @Body() userData: CreateUserDto, // Sử dụng DTO đã tạo
-  ): Promise<UserModel> {
-    return this.userService.createUser(userData);
-  }
-  @ApiOperation({ summary: 'Get all users' })
-  @Get('users')
-  @ApiResponse({ status: 200, description: 'Return all users.' })
-  async getAllUsers(): Promise<UserModel[]> {
-    return this.userService.users({});
+  ) {
+    return this.commandBus.execute(new CreateUserCommand(userData));
   }
 }

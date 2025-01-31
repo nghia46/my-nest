@@ -1,7 +1,7 @@
-
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { User, Prisma } from '@prisma/client';
+import { BaseResponse } from 'src/base-response';
 
 @Injectable()
 export class UserService {
@@ -32,10 +32,33 @@ export class UserService {
     });
   }
 
-  async createUser(data: Prisma.UserCreateInput): Promise<User> {
-    return this.prisma.user.create({
-      data,
-    });
+  async createUser(data: Prisma.UserCreateInput): Promise<BaseResponse<User>> {
+    try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: data.email },
+      });
+
+      if (existingUser) {
+        throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+      }
+
+      const newUser = await this.prisma.user.create({ data });
+
+      return {
+        success: true,
+        message: 'User created successfully',
+        data: newUser,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error; // Re-throw to let NestJS handle it
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async updateUser(params: {

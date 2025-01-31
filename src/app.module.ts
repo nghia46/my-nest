@@ -5,11 +5,14 @@ import { DemoController } from './Controllers/demo.controller';
 import { UserController } from './Controllers/user.controller';
 import { UserService } from './Services/user.service';
 import { PrismaService } from './prisma.service';
+import { CommandBus, CqrsModule } from '@nestjs/cqrs';
+import { CreateUserHandler } from './user/commands/handlers/create-user.handler';
 
+const CommandHandlers = [CreateUserHandler]; 
 @Module({
-  imports: [],
-  controllers: [AppController, DemoController, UserController], // Gộp tất cả controllers vào đây
-  providers: [AppService, UserService, PrismaService], // Gộp tất cả services vào đây
+  imports: [CqrsModule], // ⚠️ Bắt buộc phải có CqrsModule
+  controllers: [AppController, DemoController, UserController],
+  providers: [AppService, UserService, PrismaService, ...CommandHandlers], 
 })
 
 export class AppModule {}
